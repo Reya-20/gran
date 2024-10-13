@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'login.dart'; // Import the login screen
+import 'package:http/http.dart' as http; // For making HTTP requests
+import 'dart:convert'; // For JSON handling
+import 'global.dart';
 
 void main() {
   runApp(MyApp());
@@ -25,6 +28,9 @@ class RegistrationScreen extends StatefulWidget {
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -38,12 +44,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               left: 0,
               right: 0,
               child: Container(
-                height: MediaQuery.of(context).size.height * 0.35,
+                height: MediaQuery.of(context).size.height * 0.55,
                 decoration: BoxDecoration(
                   color: Color(0xFF0A1128), // Dark Blue color
                   borderRadius: BorderRadius.only(
-                    bottomRight: Radius.circular(50),
-                    bottomLeft: Radius.circular(50),
+                    bottomRight: Radius.circular(10),
+                    bottomLeft: Radius.circular(10),
                   ),
                 ),
               ),
@@ -85,6 +91,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         children: [
                           // Username field
                           TextFormField(
+                            controller: _usernameController,
                             decoration: InputDecoration(
                               labelText: 'Username',
                               prefixIcon: Icon(Icons.person, color: Color(0xFF0A1128)),
@@ -101,29 +108,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           ),
                           SizedBox(height: 16),
 
-                          // Email field
-                          TextFormField(
-                            decoration: InputDecoration(
-                              labelText: 'Email',
-                              prefixIcon: Icon(Icons.email, color: Color(0xFF0E4C92)),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter your email';
-                              }
-                              if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
-                                return 'Please enter a valid email';
-                              }
-                              return null;
-                            },
-                          ),
-                          SizedBox(height: 16),
-
                           // Password field
                           TextFormField(
+                            controller: _passwordController,
                             obscureText: true,
                             decoration: InputDecoration(
                               labelText: 'Password',
@@ -143,6 +130,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
                           // Confirm Password field
                           TextFormField(
+                            controller: _confirmPasswordController,
                             obscureText: true,
                             decoration: InputDecoration(
                               labelText: 'Confirm Password',
@@ -155,6 +143,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               if (value == null || value.isEmpty) {
                                 return 'Please confirm your password';
                               }
+                              if (value != _passwordController.text) {
+                                return 'Passwords do not match';
+                              }
                               return null;
                             },
                           ),
@@ -162,12 +153,38 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
                           // Register button
                           ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               if (_formKey.currentState?.validate() ?? false) {
                                 // Handle registration logic
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Processing Registration')),
+                                final String username = _usernameController.text;
+                                final String password = _passwordController.text;
+                                final String conPassword = _confirmPasswordController.text;
+
+                                final response = await http.post(
+                                  Uri.parse('${UserState.API_HOST}/User/register.php'), // Replace with your actual API URL
+                                  body: {
+                                    'username': username,
+                                    'password': password,
+                                    'con_pass': conPassword,
+                                  },
                                 );
+                                print('Response body: ${response.body}'); // Log the response
+
+                                final Map<String, dynamic> data = json.decode(response.body);
+                                if (data['success']) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(data['message'])),
+                                  );
+                                  // Navigate to login screen
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => LoginScreen()),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(data['message'])),
+                                  );
+                                }
                               }
                             },
                             style: ElevatedButton.styleFrom(
@@ -180,7 +197,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             child: Center(
                               child: Text(
                                 'Register',
-                                style: TextStyle(fontSize: 18),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
@@ -196,7 +217,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                   // Navigate to login screen
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => StartScreen()),
+                                    MaterialPageRoute(builder: (context) => LoginScreen()),
                                   );
                                 },
                                 child: Text(
