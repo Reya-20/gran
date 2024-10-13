@@ -1,168 +1,229 @@
 import 'package:flutter/material.dart';
-import 'register.dart';
-import 'dashboard.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dashboard.dart'; // Import the caregiver_dashboard.dart file
 
-class MyApp extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false, // Hide debug banner
-      home: StartScreen(),
-    );
-  }
+  _LoginScreenState createState() => _LoginScreenState();
 }
 
-class StartScreen extends StatefulWidget {
-  @override
-  _StartScreenState createState() => _StartScreenState();
-}
-
-class _StartScreenState extends State<StartScreen> {
-  final _emailController = TextEditingController();
+class _LoginScreenState extends State<LoginScreen> {
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+
+  Future<void> _login() async {
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text;
+
+    // Check if username and password are provided
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Username and password cannot be empty'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Prepare the API request
+    try {
+      final response = await http.post(
+        Uri.parse('http://192.168.1.19/gran_API/User/login.php'), // Your API URL
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'username': username, 'password': password}),
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+
+        if (result['success'] == true) {
+          // Navigate to the dashboard if login is successful
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => SmartHomeScreen()), // User Dashboard
+          );
+        } else {
+          // Show error message if login fails
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message']),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } else {
+        // Handle unexpected response
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${response.statusCode}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      // Show error message for connection failure
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Failed to connect to the server'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Container(
-            width: double.infinity,
-            height: MediaQuery.of(context).size.height,
-            padding: const EdgeInsets.all(20.0), // Padding around the container
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF0052CC), Color(0xFF00A3FF)], // Softer gradient
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+      backgroundColor: const Color(0xFFF2F2F2), // Light gray background
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Stack(
+              alignment: Alignment.topCenter,
               children: [
-                // App Logo or title
-                Icon(
-                  Icons.lock_outline,
-                  color: Colors.white,
-                  size: 100,
-                ),
-                SizedBox(height: 20),
-                Text(
-                  'Welcome Back',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  'Please sign in to continue',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                  ),
-                ),
-                SizedBox(height: 40),
-
-                // Email field with icon
-                TextField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.email, color: Color(0xFF0052CC)),
-                    labelText: 'Email',
-                    labelStyle: TextStyle(color: Color(0xFF0052CC)),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Color(0xFF0052CC), width: 2),
+                // The rounded rectangle container at the top with no margin
+                Container(
+                  height: 180, // Adjust height based on your design
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF26394A), // Dark blue color
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(30),
+                      bottomRight: Radius.circular(30),
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
-
-                // Password field with icon
-                TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    prefixIcon: Icon(Icons.lock, color: Color(0xFF0052CC)),
-                    labelText: 'Password',
-                    labelStyle: TextStyle(color: Color(0xFF0052CC)),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                // Display the logo with a border
+                Column(
+                  children: [
+                    const SizedBox(height: 50), // Spacing between the logo and text
+                    const Text(
+                      'Welcome Back!',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Color(0xFF0052CC), width: 2),
+                    const SizedBox(height: 5),
+                    const Text(
+                      'Sign in to your account',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w300,
+                      ),
                     ),
-                  ),
-                ),
-                SizedBox(height: 40),
-
-                // Sign-in button
-                ElevatedButton(
-                  onPressed: () {
-                    if (_emailController.text == 'admin' &&
-                        _passwordController.text == 'admin') {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => SmartHomeScreen()),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Invalid credentials')),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF0052CC),
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                    const SizedBox(height: 5), // Space at the top
+                    Container(
+                      width: 180, // Adjust the width based on your design
+                      height: 180, // Adjust the height based on your design
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: const Color(0xFF26394A), // Border color
+                          width: 4, // Border width
+                        ),
+                        borderRadius: BorderRadius.circular(10), // Rounded corners for the border
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10), // Rounded corners for the image
+                        child: Image.asset(
+                          'asset/image/logo.png', // Path to the logo image
+                          fit: BoxFit.cover, // Ensure the image covers the container
+                        ),
+                      ),
                     ),
-                    elevation: 8,
-                  ),
-                  child: Text(
-                    'SIGN IN',
-                    style: TextStyle(fontSize: 18, color: Colors.white),
-                  ),
-                ),
-                SizedBox(height: 20),
-
-                // Create an account button
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => RegistrationScreen()),
-                    );
-                  },
-                  child: Text(
-                    'CREATE AN ACCOUNT',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                    const SizedBox(height: 20), // Space before "PillCare" text
+                    // Display the "PillCare" text with custom styling
+                    RichText(
+                      text: const TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'Pill',
+                            style: TextStyle(
+                              color: Color(0xFF26394A),
+                              fontSize: 38,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'Care',
+                            style: TextStyle(
+                              color: Color(0xFF39cdaf),
+                              fontSize: 38,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 50), // Spacing after header and logo
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20), // Padding for form fields
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Username Field
+                  TextField(
+                    controller: _usernameController,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.person),
+                      labelText: 'Enter Username',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                  ),
+                  const SizedBox(height: 20), // Space between text fields
+                  // Password Field
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.lock),
+                      labelText: 'Enter Password',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                  ),
+                  const SizedBox(height: 10), // Space before sign in button
+                  // Sign In Button
+                  ElevatedButton(
+                    onPressed: _login,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF26394A), // Dark blue color
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8), // Rounded corners
+                      ),
+                    ),
+                    child: const Text(
+                      'Log In',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
