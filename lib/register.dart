@@ -178,7 +178,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                   // Navigate to login screen
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => LoginScreen()),
+                                    MaterialPageRoute(builder: (context) => GrannaryLoginScreen()),
                                   );
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -217,7 +217,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                   // Navigate to login screen
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => LoginScreen()),
+                                    MaterialPageRoute(builder: (context) => GrannaryLoginScreen()),
                                   );
                                 },
                                 child: Text(

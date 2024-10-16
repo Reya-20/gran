@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Import this to use SystemNavigator
-import 'multiple_choice.dart'; // Import the MultipleChoiceScreen widget
+import 'package:flutter/services.dart';
+import 'multiple_choice.dart';
 import '../dashboard.dart';
 
 class ScoreScreen extends StatelessWidget {
@@ -37,124 +37,126 @@ class ScoreScreen extends StatelessWidget {
               centerTitle: true,
             ),
           ),
-          // Remaining content of the ScoreScreen
-          Column(
-            children: [
-              SizedBox(height: MediaQuery.of(context).size.height * 0.15), // Space for the score
-              // Circular Score Display
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  CircleAvatar(
-                    radius: 80,
-                    backgroundColor: Colors.lightBlueAccent,
+          // Make the content scrollable
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height * 0.15), // Space for the score
+                // Circular Score Display
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CircleAvatar(
+                      radius: 80,
+                      backgroundColor: Colors.lightBlueAccent,
+                    ),
+                    CircleAvatar(
+                      radius: 70,
+                      backgroundColor: Colors.blueGrey,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Your Score',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            '$score pt',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 30),
+                // Statistics Card
+                Card(
+                  margin: EdgeInsets.symmetric(horizontal: 20),
+                  elevation: 5,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  CircleAvatar(
-                    radius: 70,
-                    backgroundColor: Colors.blueGrey,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          'Your Score',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
+                        // First Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Completion Column
+                            _buildStatColumn(
+                              icon: Icons.circle,
+                              iconColor: Colors.green,
+                              value: '${(correctAnswers / totalQuestions * 100).toInt()}%',
+                              label: 'Completion',
+                            ),
+                            // Total Questions Column
+                            _buildStatColumn(
+                              icon: Icons.circle,
+                              iconColor: Colors.purple,
+                              value: '$totalQuestions',
+                              label: 'Total Questions',
+                            ),
+                          ],
                         ),
-                        SizedBox(height: 5),
-                        Text(
-                          '$score pt',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                        SizedBox(height: 20),
+                        // Second Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Correct Answers Column
+                            _buildStatColumn(
+                              icon: Icons.circle,
+                              iconColor: Colors.green,
+                              value: '$correctAnswers',
+                              label: 'Correct Answer',
+                            ),
+                            // Wrong Answers Column
+                            _buildStatColumn(
+                              icon: Icons.circle,
+                              iconColor: Colors.red,
+                              value: '$wrongAnswers',
+                              label: 'Wrong Answer',
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-              SizedBox(height: 30),
-              // Statistics Card
-              Card(
-                margin: EdgeInsets.symmetric(horizontal: 20),
-                elevation: 5,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
+                SizedBox(height: 15),
+                // Bottom Button Row
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // First Row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Completion Column
-                          _buildStatColumn(
-                            icon: Icons.circle,
-                            iconColor: Colors.green,
-                            value: '${(correctAnswers / totalQuestions * 100).toInt()}%',
-                            label: 'Completion',
-                          ),
-                          // Total Questions Column
-                          _buildStatColumn(
-                            icon: Icons.circle,
-                            iconColor: Colors.purple,
-                            value: '$totalQuestions',
-                            label: 'Total Questions',
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 20),
-                      // Second Row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Correct Answers Column
-                          _buildStatColumn(
-                            icon: Icons.circle,
-                            iconColor: Colors.green,
-                            value: '$correctAnswers',
-                            label: 'Correct Answer',
-                          ),
-                          // Wrong Answers Column
-                          _buildStatColumn(
-                            icon: Icons.circle,
-                            iconColor: Colors.red,
-                            value: '$wrongAnswers',
-                            label: 'Wrong Answer',
-                          ),
-                        ],
-                      ),
+                      _buildIconButton(Icons.refresh, 'Play Again', Colors.blue, () {
+                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+                      }),
+                      _buildIconButton(Icons.home, 'Home', Colors.purple, () {
+                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SmartHomeApp()));
+                      }),
+                      _buildIconButton(Icons.exit_to_app, 'Exit', Colors.green, () {
+                        // Close the app
+                        SystemNavigator.pop();
+                      }),
                     ],
                   ),
                 ),
-              ),
-              SizedBox(height: 15),
-              // Bottom Button Row
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildIconButton(Icons.refresh, 'Play Again', Colors.blue, () {
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
-                    }),
-                    _buildIconButton(Icons.home, 'Home', Colors.purple, () {
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SmartHomeApp()));
-                    }),
-                    _buildIconButton(Icons.exit_to_app, 'Exit', Colors.green, () {
-                      // Close the app
-                      SystemNavigator.pop();
-                    }),
-                  ],
-                ),
-              ),
-              SizedBox(height: 30),
-            ],
+                SizedBox(height: 30),
+              ],
+            ),
           ),
         ],
       ),

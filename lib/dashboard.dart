@@ -524,59 +524,87 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          isSidebarVisible ? Icons.arrow_back : Icons.menu,
-                          color: Colors.white,
+              child: SingleChildScrollView( // Enable scrolling for the main content
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header Row with Menu/Back Icon
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            isSidebarVisible ? Icons.arrow_back : Icons.menu,
+                            color: Colors.white,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              isSidebarVisible = !isSidebarVisible; // Toggle sidebar visibility
+                            });
+                          },
                         ),
-                        onPressed: () {
-                          setState(() {
-                            isSidebarVisible = !isSidebarVisible; // Toggle sidebar visibility
-                          });
-                        },
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    // Title: Word of the Day
+                    Text(
+                      'Word of the Day',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'Word of the Day',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
                     ),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    DateFormat.yMMMMd().format(DateTime.now()),
-                    style: TextStyle(
-                      color: Colors.white54,
-                      fontSize: 14,
+                    SizedBox(height: 5),
+                    // Current Date
+                    Text(
+                      DateFormat.yMMMMd().format(DateTime.now()),
+                      style: TextStyle(
+                        color: Colors.white54,
+                        fontSize: 14,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  _buildWordCard(wordOfTheDay),
-                  SizedBox(height: 30),
-                  Expanded(
-                    child: GridView.count(
+                    SizedBox(height: 20),
+                    // Word of the Day Card
+                    _buildWordCard(wordOfTheDay),
+                    SizedBox(height: 30),
+                    // Categories Grid
+                    GridView.count(
                       crossAxisCount: 2,
                       crossAxisSpacing: 10,
                       mainAxisSpacing: 10,
+                      shrinkWrap: true, // Important to make GridView work inside SingleChildScrollView
+                      physics: NeverScrollableScrollPhysics(), // Prevent GridView from scrolling separately
                       children: [
-                        _buildCategoryButton(Icons.camera, 'Image Translator', Colors.lightBlue, ImageToTextApp()),
-                        _buildCategoryButton(Icons.edit, 'Text Translator', Colors.yellow, TranslateApp()),
-                        _buildCategoryButton(Icons.book, 'Dictionary', Colors.green, DictionaryApp()),
-                        _buildCategoryButton(Icons.quiz, 'Quiz', Colors.purple, HomeScreen()),
+                        _buildCategoryButton(
+                          Icons.camera,
+                          'Image Translator',
+                          Colors.lightBlue,
+                          ImageToTextScreen(),
+                        ),
+                        _buildCategoryButton(
+                          Icons.edit,
+                          'Text Translator',
+                          Colors.yellow,
+                          TranslateApp(),
+                        ),
+                        _buildCategoryButton(
+                          Icons.book,
+                          'Dictionary',
+                          Colors.green,
+                          DictionaryApp(),
+                        ),
+                        _buildCategoryButton(
+                          Icons.quiz,
+                          'Quiz',
+                          Colors.purple,
+                          HomeScreen(),
+                        ),
+                        // Add more category buttons as needed
                       ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -653,6 +681,7 @@ class _SmartHomeScreenState extends State<SmartHomeScreen> {
               Text(
                 label,
                 style: TextStyle(color: Colors.white, fontSize: 16),
+                textAlign: TextAlign.center,
               ),
             ],
           ),

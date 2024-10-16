@@ -1,38 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dashboard.dart'; // Import the caregiver_dashboard.dart file
+import 'dashboard.dart';
+import 'register.dart';
+import 'global.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class GrannaryLoginScreen extends StatefulWidget {
+  const GrannaryLoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  _GrannaryLoginScreenState createState() => _GrannaryLoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _GrannaryLoginScreenState extends State<GrannaryLoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   Future<void> _login() async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
-    // Check if username and password are provided
     if (username.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Username and password cannot be empty'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showSnackBar('Please enter both username and password', Colors.red);
       return;
     }
 
-    // Prepare the API request
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.19/gran_API/User/login.php'), // Your API URL
+        Uri.parse('${UserState.API_HOST}/User/register.php'), // Replace with your API URL
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'username': username, 'password': password}),
       );
@@ -41,189 +41,147 @@ class _LoginScreenState extends State<LoginScreen> {
         final result = jsonDecode(response.body);
 
         if (result['success'] == true) {
-          // Navigate to the dashboard if login is successful
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => SmartHomeScreen()), // User Dashboard
+            MaterialPageRoute(builder: (context) =>  SmartHomeApp()),
           );
         } else {
-          // Show error message if login fails
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['message']),
-              backgroundColor: Colors.red,
-            ),
-          );
+          _showSnackBar(result['message'] ?? 'Login failed', Colors.red);
         }
       } else {
-        // Handle unexpected response
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${response.statusCode}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showSnackBar('Error: ${response.statusCode}', Colors.red);
       }
     } catch (e) {
-      // Show error message for connection failure
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Failed to connect to the server'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showSnackBar('Failed to connect to server', Colors.red);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
+  }
+
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F2), // Light gray background
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Stack(
-              alignment: Alignment.topCenter,
+      backgroundColor: Colors.white, // Set background color
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // The rounded rectangle container at the top with no margin
-                Container(
-                  height: 180, // Adjust height based on your design
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF26394A), // Dark blue color
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(30),
-                      bottomRight: Radius.circular(30),
-                    ),
+                // Grannary App Title
+                const Text(
+                  'Grannary',
+                  style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                 ),
-                // Display the logo with a border
-                Column(
+                const SizedBox(height: 5),
+                // Grannary Subtext
+                const Text(
+                  'Your number one buddy in translating',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontStyle: FontStyle.italic,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                // Username TextField
+                TextField(
+                  controller: _usernameController,
+                  decoration: InputDecoration(
+                    labelText: 'Username',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    prefixIcon: const Icon(Icons.person),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Password TextField
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    prefixIcon: const Icon(Icons.lock),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                // Login Button
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _login,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      strokeWidth: 2,
+                    ),
+                  )
+                      : const Text(
+                    'Log In',
+                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Create Account Link
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 50), // Spacing between the logo and text
-                    const Text(
-                      'Welcome Back!',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    const Text(
-                      'Sign in to your account',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w300,
-                      ),
-                    ),
-                    const SizedBox(height: 5), // Space at the top
-                    Container(
-                      width: 180, // Adjust the width based on your design
-                      height: 180, // Adjust the height based on your design
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: const Color(0xFF26394A), // Border color
-                          width: 4, // Border width
+                    const Text("Don't have an account? "),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => RegistrationScreen()),
+                        );
+                      },
+                      child: const Text(
+                        'Create Account',
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
                         ),
-                        borderRadius: BorderRadius.circular(10), // Rounded corners for the border
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10), // Rounded corners for the image
-                        child: Image.asset(
-                          'asset/image/logo.png', // Path to the logo image
-                          fit: BoxFit.cover, // Ensure the image covers the container
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20), // Space before "PillCare" text
-                    // Display the "PillCare" text with custom styling
-                    RichText(
-                      text: const TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'Pill',
-                            style: TextStyle(
-                              color: Color(0xFF26394A),
-                              fontSize: 38,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          TextSpan(
-                            text: 'Care',
-                            style: TextStyle(
-                              color: Color(0xFF39cdaf),
-                              fontSize: 38,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   ],
                 ),
               ],
             ),
-            const SizedBox(height: 50), // Spacing after header and logo
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20), // Padding for form fields
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Username Field
-                  TextField(
-                    controller: _usernameController,
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.person),
-                      labelText: 'Enter Username',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    ),
-                  ),
-                  const SizedBox(height: 20), // Space between text fields
-                  // Password Field
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.lock),
-                      labelText: 'Enter Password',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    ),
-                  ),
-                  const SizedBox(height: 10), // Space before sign in button
-                  // Sign In Button
-                  ElevatedButton(
-                    onPressed: _login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF26394A), // Dark blue color
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8), // Rounded corners
-                      ),
-                    ),
-                    child: const Text(
-                      'Log In',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

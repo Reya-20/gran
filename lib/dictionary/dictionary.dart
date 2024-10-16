@@ -14538,7 +14538,6 @@ class _DictionaryHomePageState extends State<DictionaryHomePage> {
   ];
 
 
-
   bool isSidebarVisible = false; // Sidebar visibility flag
   String searchQuery = ''; // Search query for filtering words
 
@@ -14606,6 +14605,7 @@ class _DictionaryHomePageState extends State<DictionaryHomePage> {
                       ],
                     ),
                   ),
+                  // Expanded to make the list scrollable
                   Expanded(
                     child: ListView.builder(
                       itemCount: words.length,

@@ -61,7 +61,6 @@ final List<Question> _ilocanoQuestions = [
   Question(question: "What is 'Saging' in Ilocano?", options: ['Banana', 'Apple', 'Orange', 'Grapes'], correctAnswer: 'Banana')
 ];
 
-
 // Function to get a random selection of 10 questions from a category
 List<Question> getRandomQuestions(String category) {
   List<Question> questions;
@@ -153,7 +152,7 @@ class _QuizScreenState extends State<QuizScreen> {
   late List<Question> _questions;
   late int _currentQuestionIndex;
   late Timer _timer;
-  int _remainingTime = 10; // Countdown time
+  int _remainingTime = 30; // Updated countdown time to 30 seconds
   int _correctCount = 0;
   int _wrongCount = 0;
 
@@ -182,6 +181,7 @@ class _QuizScreenState extends State<QuizScreen> {
     if (_currentQuestionIndex < _questions.length - 1) {
       setState(() {
         _currentQuestionIndex++;
+        _remainingTime = 30; // Reset the timer for the next question
       });
     } else {
       _timer.cancel();
@@ -273,49 +273,51 @@ class _QuizScreenState extends State<QuizScreen> {
               ),
               child: Padding(
                 padding: EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(height: 50),
-                    Column(
-                      children: [
-                        Text(
-                          'Question ${_currentQuestionIndex + 1}/${_questions.length}',
+                child: SingleChildScrollView( // Make the content scrollable
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(height: 50),
+                      Column(
+                        children: [
+                          Text(
+                            'Question ${_currentQuestionIndex + 1}/${_questions.length}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _scoreIndicator(Icons.check_circle, Colors.lightBlue, '$_correctCount'),
+                              _scoreIndicator(Icons.cancel, Colors.redAccent, '$_wrongCount'),
+                            ],
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 20),
+                      Center(
+                        child: Text(
+                          currentQuestion.question,
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF0A1128),
                           ),
                         ),
-                        SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _scoreIndicator(Icons.check_circle, Colors.lightBlue, '$_correctCount'),
-                            _scoreIndicator(Icons.cancel, Colors.redAccent, '$_wrongCount'),
-                          ],
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 20),
-                    Center(
-                      child: Text(
-                        currentQuestion.question,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF0A1128),
-                        ),
                       ),
-                    ),
-                    SizedBox(height: 20),
-                    ...currentQuestion.options.map((option) {
-                      return GestureDetector(
-                        onTap: () => _answerQuestion(option),
-                        child: OptionCard(text: option),
-                      );
-                    }).toList(),
-                  ],
+                      SizedBox(height: 20),
+                      ...currentQuestion.options.map((option) {
+                        return GestureDetector(
+                          onTap: () => _answerQuestion(option),
+                          child: OptionCard(text: option),
+                        );
+                      }).toList(),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -339,7 +341,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     ),
                   ),
                   CircularProgressIndicator(
-                    value: _remainingTime / 10,
+                    value: _remainingTime / 30, // Updated to reflect 30 seconds
                     backgroundColor: Colors.transparent,
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.lightBlue),
                     strokeWidth: 6,
@@ -361,18 +363,14 @@ class _QuizScreenState extends State<QuizScreen> {
     );
   }
 
-  Widget _scoreIndicator(IconData icon, Color color, String score) {
-    return Row(
+  Widget _scoreIndicator(IconData icon, Color color, String value) {
+    return Column(
       children: [
         Icon(icon, color: color),
-        SizedBox(width: 5),
+        SizedBox(height: 4),
         Text(
-          score,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
+          value,
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
         ),
       ],
     );
@@ -382,41 +380,27 @@ class _QuizScreenState extends State<QuizScreen> {
 class OptionCard extends StatelessWidget {
   final String text;
 
-  const OptionCard({
-    Key? key,
-    required this.text,
-  }) : super(key: key);
+  OptionCard({required this.text});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade400, width: 2),
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.lightBlue,
+        borderRadius: BorderRadius.circular(8),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                text,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black87,
-                ),
-              ),
-            ),
-          ],
+      child: Center(
+        child: Text(
+          text,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
   }
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: HomeScreen(),
-  ));
 }
